@@ -1,0 +1,179 @@
+import time
+from time import sleep
+import RPi.GPIO as GPIO
+import telepot
+from telepot.loop import MessageLoop
+from gpiozero import Servo
+servo = Servo(21, min_pulse_width=0.5/1000, max_pulse_width=2.5/1000)
+servo.mid()
+servo.value = None
+sleep(1)
+bulbB = 18
+bulbR = 24
+bulbG = 23
+fanInput1 = 8
+fanInput2 = 7
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+#Fan
+
+GPIO.setup(fanInput1,GPIO.OUT)
+inp1=GPIO.PWM(fanInput1,100)
+inp1.start(0)
+
+GPIO.setup(fanInput2,GPIO.OUT,initial=GPIO.LOW)
+inp2=GPIO.PWM(fanInput2,100)
+inp2.start(0)
+#fanSetup=GPIO.PWM(fanPin,100)
+#fanSetup.start(0)
+#Green
+GPIO.setup(bulbG, GPIO.OUT,initial=GPIO.LOW)
+GPIO.output(bulbG, GPIO.LOW) 
+#Red
+GPIO.setup(bulbR, GPIO.OUT,initial=GPIO.LOW)
+GPIO.output(bulbR, GPIO.LOW) 
+#Blue
+GPIO.setup(bulbB, GPIO.OUT,initial=GPIO.LOW)
+GPIO.output(bulbB, GPIO.LOW) 
+
+def action(msg):
+    global speed1,speed2,servo
+    chat_id = msg['chat']['id']
+    command = msg['text']
+
+    print ('Received:',command)
+
+    #RGB Light
+    if(('light' in command) and ('on' in command)):
+             
+        if 'blue' in command:
+                message = "Turned on the light blue"
+                GPIO.output(bulbG, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)
+        elif 'green' in command:
+                message = "Turned on the light green"
+                GPIO.output(bulbG, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.LOW)
+                GPIO.output(bulbG, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)
+
+        elif 'red' in command:
+                message = "Turned on the light red"
+                GPIO.output(bulbG, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)
+        elif 'yellow' in command:
+                message = "Turned on the light yellow"
+                GPIO.output(bulbG, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.HIGH)
+                GPIO.output(bulbG, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)
+        elif 'purple' in command:
+                message = "Turned on the light purple"
+                GPIO.output(bulbG, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.HIGH)
+                GPIO.output(bulbB, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)
+        elif 'teal' in command:
+                message = "Turned on the light teal"
+                GPIO.output(bulbG, GPIO.LOW)
+                GPIO.output(bulbR, GPIO.LOW)
+                GPIO.output(bulbB, GPIO.LOW)
+                GPIO.output(bulbG, GPIO.HIGH)
+                GPIO.output(bulbB, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)                
+        else:
+                message = "Turned on the white light"
+                GPIO.output(bulbG, GPIO.HIGH)
+                GPIO.output(bulbR, GPIO.HIGH)
+                GPIO.output(bulbB, GPIO.HIGH)
+                telegram_bot.sendMessage (chat_id, message)
+    
+    if(('light' in command) and ('off' in command)):
+        message = "Turned the light off"
+        GPIO.output(bulbG, GPIO.LOW)
+        GPIO.output(bulbR, GPIO.LOW)
+        GPIO.output(bulbB, GPIO.LOW)
+        telegram_bot.sendMessage (chat_id, message)    
+    #PWM Fan Operation
+ 
+    if 'bigboss' in command:
+            telegram_bot.sendMessage(chat_id,'bigboss big')
+    if ((('door' in command) or ('Door' in command)) and (('open' in command) or ('Open' in command))):
+		   message='Say the password!'
+		   telegram_bot.sendMessage(chat_id,message) 
+    if 'Manipal' in command:
+           message='Door opened!'         
+           telegram_bot.sendMessage(chat_id,message)
+           print('door opening')
+           sleep(0.2)
+           servo.max()
+           sleep(0.2)
+           servo.value = None
+           print('door opened')
+          
+    if 'close' in command:
+           message='Door closed!'
+           telegram_bot.sendMessage(chat_id,message)
+           print('door closing')
+           sleep(0.2)
+           servo.mid()
+           print('door closed')
+           sleep(0.2)
+           servo.value = None       
+    if 'fan on' in command:
+          if '1' in command:
+                inp2.start(50)
+                speed2=50
+                speed1=0
+                message='Fan turned on at 1 speed.'
+                telegram_bot.sendMessage(chat_id,message)
+          elif '2' in command:
+                inp2.start(75)
+                speed2=75
+                speed1=0
+                message='Fan turned on at 2 speed.'
+                telegram_bot.sendMessage(chat_id,message)
+          elif '3' in command:
+                inp2.start(100)
+                speed2=100
+                speed1=0
+                message='Fan turned on at 3 speed.'
+                telegram_bot.sendMessage(chat_id,message)
+          else:
+                inp2.start(75)
+                speed2=75
+                speed1=0
+                message='Fan turned on at 2 speed.'
+                telegram_bot.sendMessage(chat_id,message)
+    if (('fan' in command) and ('off' in command)):
+                speed2=0
+                speed1=0
+                message='Fan turned off'
+                telegram_bot.sendMessage(chat_id,message)       
+    inp1.ChangeDutyCycle(speed1)
+    inp2.ChangeDutyCycle(speed2)       
+   
+    
+
+telegram_bot = telepot.Bot('6232266645:AAFnX89Avo59UPe5HX04e-UMDDYU-kGNXRo')
+print (telegram_bot.getMe())
+
+MessageLoop(telegram_bot, action).run_as_thread()
+print ('Send the command to turn on or off the light...')
+
+while 1:
+    time.sleep(10)
